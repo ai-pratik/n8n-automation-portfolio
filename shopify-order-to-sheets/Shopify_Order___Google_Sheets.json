@@ -1,0 +1,175 @@
+{
+  "name": "Shopify Order → Google Sheets",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "shopify-order",
+        "options": {
+          "rawBody": false
+        }
+      },
+      "id": "7326211b-c94e-4087-aaaf-fcfc23355c32",
+      "name": "Shopify Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "3eb8b3f7-2c17-4a8a-ba3d-80afff6fd840"
+    },
+    {
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "string": [
+            {
+              "name": "order_id",
+              "value": "={{$json[\"body\"][\"order_id\"]}}"
+            },
+            {
+              "name": "email",
+              "value": "={{$json[\"body\"][\"email\"]}}"
+            },
+            {
+              "name": "price",
+              "value": "={{$json[\"body\"][\"price\"]}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "3dcc8298-4fdc-49ce-aab9-803899e6008a",
+      "name": "Extract Order",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        200,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1v0_1OPg5OMVQzKXG2w17L96e0HG0PyLd8AWzUPudWvo",
+          "mode": "list",
+          "cachedResultName": "Shopify_Orders",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1v0_1OPg5OMVQzKXG2w17L96e0HG0PyLd8AWzUPudWvo/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1v0_1OPg5OMVQzKXG2w17L96e0HG0PyLd8AWzUPudWvo/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "order_id",
+              "displayName": "order_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "price",
+              "displayName": "price",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "5fd52dc7-df91-486f-80fe-f6acda42bb9f",
+      "name": "Append Order",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        400,
+        0
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "9JqkVr67WaA4HKdX",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## I'm a note \nEND-TO-END WORKFLOW LOGIC\n\nYour automation is:\n\nShopify Order Placed\n        ↓\nWebhook Triggered\n        ↓\nOrder Data Extracted\n        ↓\nMapped to Required Fields\n        ↓\nInserted into Google Sheet\n\n\nNow let’s break each node 👇\n\n🔵 STEP 1 — WEBHOOK NODE (ENTRY POINT)\nWhat this does?\n\nThis node creates an HTTP endpoint inside n8n.\n\nYour config:\n\nPOST /shopify-order\n\n\nSo n8n creates:\n\nTEST URL:\nhttp://localhost:5678/webhook-test/shopify-order\n\nPRODUCTION URL:\nhttp://localhost:5678/webhook/shopify-order\n\nWhen Shopify places an order:\n\nShopify sends:\n\n{\n \"id\":\"ORD888\",\n \"email\":\"demo@gmail.com\",\n \"total_price\":\"4999\"\n}\n\n\nto your webhook.\n\nBut n8n wraps incoming request like this:\n\n{\n \"body\":{\n   \"id\":\"ORD888\",\n   \"email\":\"demo@gmail.com\",\n   \"total_price\":\"4999\"\n },\n \"headers\":{},\n \"query\":{}\n}\n\n\nSo actual data lives inside:\n\n$json.body\n\n🔵 STEP 2 — EXTRACT ORDER NODE (SET NODE)\n\nNow this node is doing:\n\nDATA TRANSFORMATION\n\nYou configured:\n\nField\tValue\norder_id\t={{$json[\"body\"][\"order_id\"]}}\nemail\t={{$json[\"body\"][\"email\"]}}\nprice\t={{$json[\"body\"][\"price\"]}}\n\nSo this:\n\n{\n \"body\":{\n   \"id\":\"ORD888\",\n   \"email\":\"demo@gmail.com\",\n   \"total_price\":\"4999\"\n }\n}\n\n\nbecomes:\n\n{\n \"order_id\":\"ORD888\",\n \"email\":\"demo@gmail.com\",\n \"price\":\"4999\"\n}\n\n\nAlso:\n\nkeepOnlySet = true\n\n\nmeans:\n\nRemove all extra Shopify payload\nKeep only required fields\n\n🔵 STEP 3 — GOOGLE SHEETS NODE\n\nNow this node takes:\n\n{\n \"order_id\":\"ORD888\",\n \"email\":\"demo@gmail.com\",\n \"price\":\"4999\"\n}\n\n\nand appends it to:\n\nSheet1\n\n\nBecause:\n\nYou enabled:\n\nMapping Mode → Auto Map Input Data\n\n\nSo n8n automatically matches:\n\nWorkflow Field\tSheet Column\norder_id\torder_id\nemail\temail\nprice\tprice\n🔵 STEP 4 — DATA INSERTED INTO SHEET\n\nGoogle Sheet Row becomes:\n\norder_id\temail\tprice\nORD888\tdemo@gmail.com\n\t4999\n🔵 TEST vs PRODUCTION MODE\nMode\tURL\nTesting\t/webhook-test/shopify-order\nProduction\t/webhook/shopify-order\n\nAfter activation:\n\nShopify must call:\n\n/webhook/shopify-order",
+        "height": 240,
+        "width": 380
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        620,
+        240
+      ],
+      "id": "22e8c4cf-44e4-43e2-ab4e-e9d51bca2e93",
+      "name": "Sticky Note"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Shopify Webhook": {
+      "main": [
+        [
+          {
+            "node": "Extract Order",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Order": {
+      "main": [
+        [
+          {
+            "node": "Append Order",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "e99137f0-24b6-41b5-8c7e-587234407f5c",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "238a1ef667d61f9fe16f94dc62035ff54d0a8d4b2d3357c206245b1d73bd1d9e"
+  },
+  "id": "0nDWmBmHQTuOgBIG",
+  "tags": []
+}
